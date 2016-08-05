@@ -49,7 +49,7 @@ NSString *const SavedBluetoothUUID = @"LSSavedBluetoothUUID";
  *
  *  @return 缓存成功否
  */
-- (BOOL)cacheBluetooth:(LSBluetoothInfo *) discoveredBluetoothInfo {
+- (BOOL)cacheBluetooth:(LSBluetoothInfo *)discoveredBluetoothInfo {
     for (LSBluetoothInfo *info in self.arrForBLE) {
         if ([info.discoveredPeripheral.identifier.UUIDString isEqualToString:discoveredBluetoothInfo.discoveredPeripheral.identifier.UUIDString]) {
             return NO;
@@ -88,10 +88,17 @@ NSString *const SavedBluetoothUUID = @"LSSavedBluetoothUUID";
  *
  *  @param discoveredPeripheral 搜索到的蓝牙外围设备信息
  */
-- (void)saveBluetooth:(CBPeripheral *) discoveredPeripheral {
+- (void)saveBluetooth:(CBPeripheral *)discoveredPeripheral {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     NSString *uuidStr = discoveredPeripheral.identifier.UUIDString;
     [userDefaults setObject:uuidStr forKey:SavedBluetoothUUID];
 }
+
+//- (NSArray *)xorBluetoothByte:(Byte[])bytes1 Byte:(Byte[])bytes2 {
+//    
+//}
+
+
+
 
 @end

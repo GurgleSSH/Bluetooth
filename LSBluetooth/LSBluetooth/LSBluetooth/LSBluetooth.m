@@ -16,6 +16,8 @@
 NSString *const BluetoothConnectSuccessNotification = @"LSBluetoothConnectSuccessNotification";
 NSString *const BluetoothConnectFailureNotification = @"LSBluetoothConnectFailureNotification";
 NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotification";
+NSString *const BluetoothValueChangedNotification = @"LSBluetoothValueChangedNotification";
+NSString *const BluetoothPeripheralDiscoverNotification = @"BluetoothPeripheralDiscoverNotification";
 
 
 
@@ -66,6 +68,14 @@ NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotific
     RESPONDS_TO(observer, bluetoothDisconnect:) {
         [[NSNotificationCenter defaultCenter] addObserver:observer selector:@selector(bluetoothDisconnect:) name:BluetoothDisconnectNotification object:nil];
     }
+    //4.特征值改变
+    RESPONDS_TO(observer, bluetoothValueChanged:) {
+        [[NSNotificationCenter defaultCenter] addObserver:observer selector:@selector(bluetoothValueChanged:) name:BluetoothValueChangedNotification object:nil];
+    }
+    
+    RESPONDS_TO(observer, bluetoothDiscoverBluetoothPeripheral:) {
+        [[NSNotificationCenter defaultCenter] addObserver:observer selector:@selector(bluetoothDiscoverBluetoothPeripheral:) name:BluetoothPeripheralDiscoverNotification object:nil];
+    }
 }
 #pragma mark ** PRIVATE
 
@@ -98,7 +108,7 @@ NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotific
     [self.centralManager scanForPeripheralsWithServices:serviceUUIDs options:options];
 }
 
-#pragma mark ** PRIVATE
+#pragma mark ** PRIVATE 
 /**
  *  @brief centralManager状态已经改变后回调
  *
@@ -122,6 +132,7 @@ NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotific
  *  @param RSSI              RSSI 信号强度
  */
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary<NSString *,id> *)advertisementData RSSI:(NSNumber *)RSSI {
+    [[NSNotificationCenter defaultCenter] postNotificationName:BluetoothPeripheralDiscoverNotification object:nil userInfo:@{@"peripheral":peripheral}];
     LSBluetoothInfo *info = [[LSBluetoothInfo alloc] init];
     info.discoveredPeripheral = peripheral;
     info.rssi = RSSI;
@@ -240,6 +251,9 @@ NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotific
     //打印出characteristic的UUID和值
     //!注意，value的类型是NSData，具体开发时，会根据外设协议制定的方式去解析数据
     NSLog(@"characteristic uuid:%@  value:%@",characteristic.UUID,characteristic.value);
+    if (![characteristic isEqual:nil]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:BluetoothValueChangedNotification object:nil userInfo:@{@"peripheral":peripheral, @"characteristic":characteristic}];
+    }
 }
 
 /**
@@ -266,8 +280,9 @@ NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotific
  */
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForDescriptor:(CBDescriptor *)descriptor error:(NSError *)error{
     //打印出DescriptorsUUID 和value
-    //这个descriptor都是对于characteristic的描述，一般都是字符串，所以这里我们转换成字符串去解析
+    //这个descriptor都是对于characteristic的描述，一般都是字符串
     NSLog(@"characteristic uuid:%@  value:%@",[NSString stringWithFormat:@"%@",descriptor.UUID],descriptor.value);
+    
 }
 
 #pragma mark - 5.write characteristic 写特征值
@@ -283,11 +298,11 @@ NSString *const BluetoothDisconnectNotification = @"LSBluetoothDisconnectNotific
                      value:(NSData *)value peripheral:(CBPeripheral *)peripheral {
     NSLog(@"%lu", (unsigned long)characteristic.properties);
     //只有 characteristic.properties 有write的权限才可以写
-    if(characteristic.properties & CBCharacteristicPropertyWrite){
+    if(characteristic.properties & CBCharacteristicPropertyWriteWithoutResponse){
         /*
-         最好一个type参数可以为CBCharacteristicWriteWithResponse或type:CBCharacteristicWriteWithResponse,区别是是否会有反馈
+         最好一个type参数可以为CBCharacteristicWriteWithResponse或type:CBCharacteristicWriteWithResponse区别是是否会有反馈
          */
-        [peripheral writeValue:value forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
+        [peripheral writeValue:value forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
     }else{
         NSLog(@"该字段不可写！");
     }

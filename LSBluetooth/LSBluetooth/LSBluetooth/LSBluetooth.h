@@ -16,19 +16,20 @@
 
 @protocol LSBluetooth <NSObject>
 
+@optional
 /**
  *  @brief 成功连接外围设备后调用
  *
- *  @param notification 通知的userInfo中包含"peripheral"信息
+ *  @param notification 通知的userInfo中包含"peripheral","characteristics"信息
  */
-- (void)bluetoothConnectSuccess:(nullable NSNotification *)notification;
+- (void)bluetoothConnectSuccess:(nonnull NSNotification *)notification;
 
 /**
  *  @brief 连接外围设备失败后调用
  *
  *  @param notification 通知的userInfo中包含"peripheral"和"error"信息
  */
-- (void)bluetoothConnectFailed:(nullable NSNotification *)notification;
+- (void)bluetoothConnectFailed:(nonnull NSNotification *)notification;
 
 /**
  *  @brief 与外围设备断开连接后调用
@@ -37,9 +38,24 @@
  */
 - (void)bluetoothDisconnect:(nullable NSNotification *)notification;
 
+/**
+ *  @brief 特征值改变时调用
+ *
+ *  @param notification 通知的userInfo中包含"peripheral"和"characteristic"
+ */
+- (void)bluetoothValueChanged:(NSNotification * _Nonnull)notification;
+
+/**
+ *  @brief 发现外围设备后调用
+ *
+ *  @param notification notification 通知的userInfo中包含"peripheral"
+ */
+- (void)bluetoothDiscoverBluetoothPeripheral:(nullable NSNotification *)notification;
+
 @end
 
 @interface LSBluetooth : NSObject
+
 
 #pragma mark - init 初始化方法 + 1.create centralManager 创建中心角色
 /**
@@ -47,7 +63,7 @@
  *
  *  @return 类的实例
  */
-+ (nullable instancetype)sharedBluetooth;
++ (instancetype _Nonnull)sharedBluetooth;
 
 #pragma mark -  add the observer of bluetooth's states 添加蓝牙连接状态的观察者
 /**

@@ -10,7 +10,7 @@
 #define LSBluetoothMicro_h
 
 //字符串不为空
-#define STRING_IS_NOT_NULL(str) !(str == nil || [str isEqualToString:@""] || [str isEqual:[NSNull null]])
+#define STRING_IS_NOT_NULL(str) !([str isEqual:[NSNull null]] || str == nil || [str isEqualToString:@""])
 
 //delegate 验证
 #define DELEGATE_RESPONDS(method) if (self.delegate && [self.delegate respondsToSelector:@selector(method)]) {[self.delegate method];}
@@ -23,6 +23,7 @@
 
 //对象是否能够响应方法（含参）
 #define RESPONDS_TO_WITH(who, method, param) if ([who respondsToSelector:@selector(method param)])
+
 
 
 #endif /* LSBluetoothMicro_h */
